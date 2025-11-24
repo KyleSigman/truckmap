@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🚛 Справочник моделей и двигателей</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9fb;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .view-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 25px;
+      padding: 12px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .view-btn {
+      padding: 8px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background: #e0e5ec;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .view-btn.active {
+      background: #4a6fa5;
+      color: white;
+    }
+
+    .view-btn:hover:not(.active) {
+      background: #d1d8e0;
+    }
+
+    /* === Красивый вид — без изменений === */
+    .view-beautiful h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 26px;
+    }
+
+    .brand-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      border-left: 5px solid #4a6fa5;
+    }
+
+    .brand-name {
+      font-size: 22px;
+      margin-bottom: 12px;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    .model-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .model-item {
+      background: #f5f7fa;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .model-code {
+      font-weight: bold;
+      color: #2980b9;
+    }
+
+    .model-name {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .engine {
+      color: #27ae60;
+      font-weight: 600;
+    }
+
+    .year-codes {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 30px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      border-left: 5px solid #e67e22;
+    }
+
+    .year-codes h2 {
+      color: #2c3e50;
+      margin-bottom: 15px;
+    }
+
+    .year-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 10px;
+    }
+
+    .year-item {
+      background: #fef6e3;
+      padding: 8px;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    /* === Сырой вид: новый подход === */
+    .view-raw > div {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
+    .view-raw h2 {
+      margin-top: 0;
+      color: #2c3e50;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 8px;
+    }
+
+    .comment {
+      font-size: 13px;
+      color: #7f8c8d;
+      margin: 12px 0 8px;
+      font-style: italic;
+    }
+
+    .pair-line {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+      font-size: 16px;
+    }
+
+    .pair-key {
+      font-weight: bold;
+      background: white;
+      border: 2px solid #ccc;
+      padding: 4px 10px;
+      border-radius: 4px;
+      min-width: 60px;
+      text-align: center;
+      color: #000;
+    }
+
+    .pair-value-brand { background: #e74c3c; color: white; }
+    .pair-value-model { background: #2980b9; color: white; }
+    .pair-value-engine { background: #27ae60; color: white; }
+    .pair-value-year { background: #8e44ad; color: white; }
+
+    .pair-value {
+      padding: 4px 12px;
+      border-radius: 4px;
+      margin-left: 10px;
+    }
+
+    .engine-group {
+      display: flex;
+      margin-bottom: 8px;
+    }
+
+    .engine-group .pair-key {
+      min-width: 70px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="view-toggle">
+    <button class="view-btn active" data-view="beautiful">👁️ Наглядный вид</button>
+    <button class="view-btn" data-view="raw">📋 Сырой вид (для сверки)</button>
+  </div>
+
+  <!-- Красивый вид -->
+  <div id="view-beautiful" class="view-beautiful">
+    <h1>🚛 Справочник брендов, моделей и двигателей</h1>
+    <div id="brands-container"></div>
+    <div class="year-codes">
+      <h2>📅 Коды годов выпуска</h2>
+      <div class="year-grid" id="year-codes-container"></div>
+    </div>
+  </div>
+
+  <!-- Сырой вид -->
+  <div id="view-raw" class="view-raw" style="display: none;">
+    <div>
+      <h2>🏭 WMI → Бренд и модели</h2>
+      <div id="raw-wmi"></div>
+    </div>
+
+    <div>
+      <h2>⚙️ Двигатели → Модели</h2>
+      <div class="comment">Группировка: каждый двигатель → список моделей, в которых он используется.</div>
+      <div id="raw-engines-grouped"></div>
+    </div>
+
+    <div>
+      <h2>📅 Код года → Год выпуска</h2>
+      <div class="comment">Символ в 10-й позиции VIN → календарный год.</div>
+      <div id="raw-years"></div>
+    </div>
+  </div>
+
+  <script>
+    const WMI_MAP = {
+      "LZZ": {"brand": "HOWO / SINOTRUK", "models": {"5CL": "C7H", "5BP": "T7H", "5BR": "T5G", "1LC": "TH7", "1LD": "TX", "5CA": "A7", "5DY": "T5G"}},
+      "LVB": {"brand": "FOTON", "models": {"4LA": "Auman", "4LB": "Aumark", "4LC": "Aumark S", "BJ4189": "Auman", "S6P": "Auman EST"}},
+      "LZW": {"brand": "HOWO", "models": {"5AC": "T7H", "5AD": "T5G", "5AE": "C7H"}},
+      "LFC": {"brand": "FAW", "models": {"5EK": "J6", "5EL": "J7", "5EM": "J6P"}},
+      "LSV": {"brand": "SHACMAN", "models": {"5FA": "X3000", "5FB": "X6000", "5FC": "F3000"}},
+      "LDP": {"brand": "DONGFENG", "models": {"4KA": "Tianjin", "4KB": "KX", "4KC": "KL"}},
+      "LJ1": {"brand": "JAC", "models": {"5FA": "Heavy Truck", "5FB": "Light Truck"}},
+      "LZG": {"brand": "SHAANXI", "models": {"5HA": "X3000", "5HB": "M3000"}},
+      "LZX": {"brand": "BEIBEN", "models": {"5NA": "V3", "5NB": "NG80"}}
+    };
+
+    const MODEL_TO_ENGINE = {
+      "T5G": "MC07", "T7H": "MC11", "C7H": "MC11", "TH7": "MC11", "TX": "WP10", "A7": "WP10",
+      "J6": "WP10", "J7": "WP12", "J6P": "WP13",
+      "Auman": "WP12", "Auman EST": "WP12", "Aumark": "WP10", "Aumark S": "WP10",
+      "X3000": "WP10", "X6000": "WP12", "F3000": "WD615",
+      "Tianjin": "WD615", "KX": "WD615", "KL": "WP10", "Heavy Truck": "WP10", "Light Truck": "WP10",
+      "M3000": "WP10", "V3": "WD615", "NG80": "WD615"
+    };
+
+    const YEAR_CODES = {
+      'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014,
+      'F': 2015, 'G': 2016, 'H': 2017, 'J': 2018, 'K': 2019,
+      'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024,
+      'S': 2025, 'T': 2026, 'V': 2027, 'W': 2028, 'X': 2029, 'Y': 2030
+    };
+
+    // === Красивый вид (без изменений) ===
+    function renderBeautifulView() {
+      const container = document.getElementById('brands-container');
+      container.innerHTML = '';
+      for (const [wmi, data] of Object.entries(WMI_MAP)) {
+        const brandDiv = document.createElement('div');
+        brandDiv.className = 'brand-card';
+
+        const brandHeader = document.createElement('div');
+        brandHeader.className = 'brand-name';
+        brandHeader.innerHTML = `🏭 ${data.brand} <small style="color:#7f8c8d">(${wmi})</small>`;
+        brandDiv.appendChild(brandHeader);
+
+        const modelList = document.createElement('div');
+        modelList.className = 'model-list';
+
+        for (const [code, modelName] of Object.entries(data.models)) {
+          const engine = MODEL_TO_ENGINE[modelName] || '–';
+          const modelItem = document.createElement('div');
+          modelItem.className = 'model-item';
+          modelItem.innerHTML = `
+            <span class="model-code">${code}</span>
+            <span>→ <span class="model-name">${modelName}</span></span>
+            <span class="engine">${engine}</span>
+          `;
+          modelList.appendChild(modelItem);
+        }
+
+        brandDiv.appendChild(modelList);
+        container.appendChild(brandDiv);
+      }
+
+      const yearContainer = document.getElementById('year-codes-container');
+      yearContainer.innerHTML = '';
+      for (const [code, year] of Object.entries(YEAR_CODES)) {
+        const yearItem = document.createElement('div');
+        yearItem.className = 'year-item';
+        yearItem.textContent = `${code} → ${year}`;
+        yearContainer.appendChild(yearItem);
+      }
+    }
+
+    // === Сырой вид: улучшенный ===
+    function renderRawView() {
+      // --- WMI блоки ---
+      let wmiHtml = '';
+      for (const [wmi, data] of Object.entries(WMI_MAP)) {
+        wmiHtml += `<div class="comment">Расшифровка WMI: ${wmi} → бренд</div>`;
+        wmiHtml += `<div class="pair-line">`;
+        wmiHtml += `<span class="pair-key">${wmi}</span>`;
+        wmiHtml += `<span class="pair-value pair-value-brand">${data.brand}</span>`;
+        wmiHtml += `</div>`;
+
+        wmiHtml += `<div class="comment">Модели для WMI ${wmi}</div>`;
+        for (const [code, model] of Object.entries(data.models)) {
+          wmiHtml += `<div class="pair-line">`;
+          wmiHtml += `<span class="pair-key">${code}</span>`;
+          wmiHtml += `<span class="pair-value pair-value-model">${model}</span>`;
+          wmiHtml += `</div>`;
+        }
+        wmiHtml += `<hr style="margin: 20px 0; border: 0; border-top: 1px dashed #eee;">`;
+      }
+      document.getElementById('raw-wmi').innerHTML = wmiHtml;
+
+      // --- Группировка двигателей ---
+      const engineToModels = {};
+      for (const [model, engine] of Object.entries(MODEL_TO_ENGINE)) {
+        if (!engineToModels[engine]) engineToModels[engine] = [];
+        engineToModels[engine].push(model);
+      }
+
+      let engineHtml = '';
+      for (const [engine, models] of Object.entries(engineToModels)) {
+        engineHtml += `<div class="engine-group">`;
+        engineHtml += `<span class="pair-key">${engine}</span>`;
+        engineHtml += `<span class="pair-value pair-value-engine">${models.sort().join(', ')}</span>`;
+        engineHtml += `</div>`;
+      }
+      document.getElementById('raw-engines-grouped').innerHTML = engineHtml;
+
+      // --- Годы ---
+      let yearHtml = '';
+      for (const [code, year] of Object.entries(YEAR_CODES)) {
+        yearHtml += `<div class="pair-line">`;
+        yearHtml += `<span class="pair-key">${code}</span>`;
+        yearHtml += `<span class="pair-value pair-value-year">${year}</span>`;
+        yearHtml += `</div>`;
+      }
+      document.getElementById('raw-years').innerHTML = yearHtml;
+    }
+
+    // Переключение вида
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const view = btn.dataset.view;
+        document.getElementById('view-beautiful').style.display = view === 'beautiful' ? 'block' : 'none';
+        document.getElementById('view-raw').style.display = view === 'raw' ? 'block' : 'none';
+      });
+    });
+
+    // Инициализация
+    renderBeautifulView();
+    renderRawView();
+  </script>
+
+</body>
+</html>
